@@ -1,5 +1,5 @@
-import { LocalIntelligentGenerator, SearchQueriesResponse } from './localIntelligentGenerator';
-import { DomainMention } from './domainScanner';
+import { LocalIntelligentGenerator, SearchQueriesResponse } from './local-intelligent-generator';
+import { DomainMention } from '../scanners/domain-scanner';
 
 interface SearchContext {
   previousQueries: string[];
@@ -180,7 +180,7 @@ export class AdaptiveSearchStrategy {
       if (query.includes('#')) patterns.push('hashtag-based');
       if (query.includes('@')) patterns.push('mention-based');
       if (query.includes('"')) patterns.push('exact-phrase');
-      if (/[^\x00-\x7F]/.test(query)) patterns.push('non-english');
+      if (/[^\x20-\x7F]/.test(query)) patterns.push('non-english');
       if (query.includes('.skr')) patterns.push('direct-domain');
     }
     

@@ -1,6 +1,6 @@
-# Twitter .skr Domain Scout Agent
+# Solana Seeker Scout
 
-An AI-powered Twitter scouting agent that intelligently searches for mentions of .skr domains (Solana mobile TLD) and collects user information for guerilla marketing campaigns.
+Advanced Solana domain discovery system that intelligently searches for .skr domain mentions across Twitter. Uses adaptive AI-powered search strategies to optimize data collection and maximize domain discovery.
 
 ## Features
 
@@ -14,7 +14,7 @@ An AI-powered Twitter scouting agent that intelligently searches for mentions of
 - **💾 Persistent Learning**: Saves and loads adaptive state across sessions
 - **🔄 Rate Limiting**: Built-in rate limiting to respect API limits
 - **📋 Data Export**: Exports data in JSON and CSV formats
-- **🚀 Continuous Harvesting**: Can run continuously with intelligent query adaptation
+- **🚀 Continuous Scouting**: Can run continuously with intelligent query adaptation
 
 ## Setup
 
@@ -47,8 +47,8 @@ await agent.runSingleHarvest();
 // Start continuous harvesting (every 30 minutes)
 await agent.startContinuousHarvest(30);
 
-// Harvest specific domains
-await agent.harvestSpecificDomains(['wallet.skr', 'nft.skr']);
+// Scout specific domains
+await agent.scoutSpecificDomains(['wallet.skr', 'nft.skr']);
 
 // Get statistics
 agent.getStatistics();
@@ -59,15 +59,15 @@ agent.exportData();
 
 ## Output Files
 
-- `src/twitter-harvester/harvest-results/harvested_data.json` - Full harvest data
-- `src/twitter-harvester/harvest-results/harvested_data.csv` - CSV export
-- `src/twitter-harvester/harvest-results/airdrop_list.json` - Formatted for token distribution
-- `src/twitter-harvester/harvest-results/progress.json` - Harvest progress tracking
-- `src/twitter-harvester/harvest-results/adaptive_state.json` - AI learning state
+- `output/scout-results/scouted_data.json` - Full scout data
+- `output/scout-results/scouted_data.csv` - CSV export
+- `output/scout-results/airdrop_list.json` - Formatted for token distribution
+- `output/scout-results/progress.json` - Scout progress tracking
+- `output/scout-results/adaptive_state.json` - AI learning state
 
 ## Data Structure
 
-Each harvested record contains:
+Each scouted record contains:
 - `domain`: The .skr domain mentioned
 - `username`: Twitter username who mentioned it
 - `userId`: Twitter user ID
@@ -75,11 +75,11 @@ Each harvested record contains:
 - `tweetId`: ID of the tweet containing mention
 - `tweetText`: Full text of the tweet
 - `timestamp`: When the tweet was created
-- `harvestedAt`: When the data was harvested
+- `scoutedAt`: When the data was scouted
 
 ## AI Search Strategies
 
-The harvester uses different strategies based on performance:
+The scout uses different strategies based on performance:
 
 ### 🎯 **Diversify Strategy**
 - Used when few results found recently

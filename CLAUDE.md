@@ -4,36 +4,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a TypeScript-based Twitter data collection system that searches for mentions of .skr domains (Solana mobile TLD). The system uses adaptive AI-powered search strategies to optimize data collection.
+This is Solana Seeker Scout - an advanced TypeScript-based system that intelligently discovers .skr domain mentions across Twitter. The system uses adaptive AI-powered search strategies to optimize domain discovery and data collection.
 
 ## Key Architecture Components
 
 ### Core Modules
-- **harvesterAgent.ts**: Main orchestration agent (ScoutAgent class) that coordinates harvesting operations
-- **dataHarvester.ts**: DataScout class handling the actual data collection logic
-- **twitterClient.ts**: TwitterClient for API interactions
-- **adaptiveSearchStrategy.ts**: AI-powered adaptive search strategy implementation
-- **localIntelligentGenerator.ts**: Local AI algorithm for generating search queries
-- **domainScanner.ts**: SkrDomainScanner for scanning domain mentions
-- **domainSpecificSearch.ts**: Domain-specific search implementation
-- **solanaDomainDumper.ts**: Solana blockchain domain data dumper
+- **src/agents/harvester-agent.ts**: Main orchestration agent (ScoutAgent class) that coordinates scouting operations
+- **src/agents/data-scout.ts**: DataScout class handling the actual data collection logic
+- **src/clients/twitter-client.ts**: TwitterClient for API interactions
+- **src/strategies/adaptive-search-strategy.ts**: AI-powered adaptive search strategy implementation
+- **src/strategies/local-intelligent-generator.ts**: Local AI algorithm for generating search queries
+- **src/scanners/domain-scanner.ts**: SkrDomainScanner for scanning domain mentions
+- **src/scanners/domain-specific-search.ts**: Domain-specific search implementation
+- **src/integrations/solana-domain-dumper.ts**: Solana blockchain domain data dumper
 
 ### Data Flow
-1. ScoutAgent orchestrates harvesting cycles
+1. ScoutAgent orchestrates scouting cycles
 2. DataScout uses AdaptiveSearchStrategy to generate optimized queries
 3. TwitterClient fetches data from Twitter API
-4. Results are processed and stored in scout-results/ directory
+4. Results are processed and stored in output/scout-results/ directory
 5. System adapts search patterns based on performance metrics
 
 ## Development Commands
 
 ### Running the Application
 ```bash
-# Run the main harvester agent
-npx ts-node harvesterAgent.ts
+# Run the main scout agent
+npm run scout
 
-# Run from project root
-npx ts-node src/twitter-harvester/harvesterAgent.ts
+# Development mode
+npm run dev
+
+# Build and run production
+npm run build
+npm start
 ```
 
 ### Dependencies
@@ -51,11 +55,11 @@ Required environment variables in `.env`:
 
 ## Data Storage
 
-All harvested data is stored in `scout-results/` directory:
-- `harvested_data.json`: Full harvest data
-- `harvested_data.csv`: CSV export format
+All scouted data is stored in `output/scout-results/` directory:
+- `scouted_data.json`: Full scout data
+- `scouted_data.csv`: CSV export format
 - `airdrop_list.json`: Formatted for token distribution
-- `progress.json`: Harvest progress tracking
+- `progress.json`: Scout progress tracking
 - `adaptive_state.json`: AI learning state persistence
 
 ## Search Strategy System

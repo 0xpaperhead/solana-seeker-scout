@@ -75,7 +75,7 @@ export class LocalIntelligentGenerator {
     return variations.length > 0 ? variations : this.getBalancedQueries();
   }
 
-  private getDiversifyQueries(context: any): string[] {
+  private getDiversifyQueries(_context: any): string[] {
     const creative = [
       'bought my .skr',
       'set up .skr',

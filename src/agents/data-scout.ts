@@ -1,6 +1,6 @@
-import { TwitterClient } from './twitterClient';
-import { SkrDomainScanner, DomainMention } from './domainScanner';
-import { AdaptiveSearchStrategy } from './adaptiveSearchStrategy';
+import { TwitterClient } from '../clients/twitter-client';
+import { SkrDomainScanner, DomainMention } from '../scanners/domain-scanner';
+import { AdaptiveSearchStrategy } from '../strategies/adaptive-search-strategy';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -32,7 +32,7 @@ export class DataScout {
   private progress: ScoutProgress;
   private outputDir: string;
 
-  constructor(apiKey: string, outputDir: string = './scout-results') {
+  constructor(apiKey: string, outputDir: string = './output/scout-results') {
     this.twitterClient = new TwitterClient(apiKey);
     this.scanner = new SkrDomainScanner();
     this.adaptiveStrategy = new AdaptiveSearchStrategy();
@@ -87,13 +87,13 @@ export class DataScout {
 
   private saveData(): void {
     const dataFile = path.join(this.outputDir, 'scouted_data.json');
-    const csvFile = path.join(this.outputDir, 'harvested_data.csv');
+    const csvFile = path.join(this.outputDir, 'scouted_data.csv');
     const progressFile = path.join(this.outputDir, 'progress.json');
 
     try {
       fs.writeFileSync(dataFile, JSON.stringify(this.scoutedData, null, 2));
       
-      const csvHeader = 'Domain,Username,User ID,Followers,Tweet ID,Tweet Text,Timestamp,Harvested At\n';
+      const csvHeader = 'Domain,Username,User ID,Followers,Tweet ID,Tweet Text,Timestamp,Scouted At\n';
       const csvRows = this.scoutedData.map(item => 
         `"${item.domain}","${item.username}","${item.userId || ''}",${item.followers},"${item.tweetId}","${item.tweetText.replace(/"/g, '""')}","${item.timestamp}","${item.scoutedAt}"`
       ).join('\n');
@@ -168,7 +168,7 @@ export class DataScout {
         }
       }
     } catch (error) {
-      console.error(`Error harvesting from search "${query}":`, error);
+      console.error(`Error scouting from search "${query}":`, error);
       this.progress.errors.push(`Search error for "${query}": ${error}`);
     }
 
@@ -194,7 +194,7 @@ export class DataScout {
         const userDetails = await this.twitterClient.getUserDetails(mention.username);
 
         if (userDetails) {
-          const harvestedItem: ScoutedData = {
+          const scoutedItem: ScoutedData = {
             domain: mention.domain,
             username: mention.username,
             userId: userDetails.id,
@@ -205,8 +205,8 @@ export class DataScout {
             scoutedAt: new Date().toISOString()
           };
 
-          enrichedData.push(harvestedItem);
-          this.scoutedData.push(harvestedItem);
+          enrichedData.push(scoutedItem);
+          this.scoutedData.push(scoutedItem);
           this.processedUsers.add(mention.username);
           this.progress.usersProcessed++;
           this.progress.domainsFound++;
@@ -284,7 +284,7 @@ export class DataScout {
   }
 
   async scoutFromUserList(usernames: string[]): Promise<void> {
-    console.log(`Harvesting from ${usernames.length} users`);
+    console.log(`Scouting from ${usernames.length} users`);
     const allMentions: DomainMention[] = [];
 
     for (const username of usernames) {
@@ -305,14 +305,14 @@ export class DataScout {
           console.log(`Found ${mentions.length} mentions from @${username}`);
         }
       } catch (error) {
-        console.error(`Error harvesting from @${username}:`, error);
+        console.error(`Error scouting from @${username}:`, error);
       }
       
       await this.scanner.delay(2000);
     }
 
     if (allMentions.length > 0) {
-      const harvestedItems = allMentions.map(mention => ({
+      const scoutedItems = allMentions.map(mention => ({
         domain: mention.domain,
         username: mention.username,
         userId: mention.userId,
@@ -323,8 +323,8 @@ export class DataScout {
         scoutedAt: new Date().toISOString()
       }));
 
-      this.scoutedData.push(...harvestedItems);
-      this.progress.domainsFound += harvestedItems.length;
+      this.scoutedData.push(...scoutedItems);
+      this.progress.domainsFound += scoutedItems.length;
       this.progress.usersProcessed += usernames.length;
       this.saveData();
     }
@@ -383,7 +383,7 @@ export class DataScout {
   }
 
   private printSummary(): void {
-    console.log('\n📈 === Harvest Summary ===');
+    console.log('\n📈 === Scout Summary ===');
     console.log(`Total tweets scanned: ${this.progress.totalScanned}`);
     console.log(`Unique .skr domains found: ${this.progress.domainsFound}`);
     console.log(`Users processed: ${this.progress.usersProcessed}`);

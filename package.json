@@ -1,0 +1,40 @@
+{
+  "name": "solana-seeker-scout",
+  "version": "1.0.0",
+  "description": "Solana Seeker Scout - Advanced .skr domain mention discovery system",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/agents/harvester-agent.js",
+    "dev": "ts-node src/agents/harvester-agent.ts",
+    "scout": "ts-node src/agents/harvester-agent.ts",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": [
+    "solana",
+    "domains",
+    "scout",
+    "seeker",
+    "skr",
+    "data-collection",
+    "twitter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@onsol/tldparser": "^0.5.0",
+    "@solana/web3.js": "^1.87.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.0"
+  }
+}

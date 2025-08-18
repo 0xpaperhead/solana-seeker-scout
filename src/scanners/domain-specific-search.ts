@@ -1,6 +1,6 @@
-import { TwitterClient } from './twitterClient';
-import { SkrDomainScanner, DomainMention } from './domainScanner';
-import { SolanaDomainDumper } from './solanaDomainDumper';
+import { TwitterClient } from '../clients/twitter-client';
+import { SkrDomainScanner, DomainMention } from './domain-scanner';
+import { SolanaDomainDumper } from '../integrations/solana-domain-dumper';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -27,7 +27,7 @@ export class DomainSpecificSearch {
   private outputDir: string;
   private progress: SearchProgress;
 
-  constructor(apiKey: string, rpcUrl: string, outputDir: string = './harvest-results') {
+  constructor(apiKey: string, rpcUrl: string, outputDir: string = './output/scout-results') {
     this.twitterClient = new TwitterClient(apiKey);
     this.scanner = new SkrDomainScanner();
     this.domainDumper = new SolanaDomainDumper(rpcUrl, outputDir);
@@ -145,8 +145,8 @@ export class DomainSpecificSearch {
     console.log('📋 Loading registered .skr domains...');
     
     // Get all registered domains
-    const domains = await this.domainDumper.dumpDomains(forceRefresh);
-    const domainNames = domains.map(d => d.domain);
+    const domains = await this.domainDumper.dumpAllDomains();
+    const domainNames = domains.map((d: any) => d.domain);
     
     console.log(`Found ${domainNames.length} registered .skr domains`);
     
@@ -181,7 +181,10 @@ export class DomainSpecificSearch {
   async searchPopularDomains(count: number = 20): Promise<DomainSearchResult[]> {
     console.log(`🔥 Searching for mentions of ${count} random .skr domains...`);
     
-    const sampleDomains = await this.domainDumper.getRandomDomainSample(count);
+    // Get a random sample of domains
+    const allDomains = await this.domainDumper.fetchAllSkrDomains();
+    const shuffled = allDomains.sort(() => 0.5 - Math.random());
+    const sampleDomains = shuffled.slice(0, count).map(d => d.domain);
     
     if (sampleDomains.length === 0) {
       console.log('❌ No domains available for sampling');

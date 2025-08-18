@@ -1,14 +1,12 @@
-import { DataScout } from './dataHarvester';
-import { SolanaDomainDumper } from './solanaDomainDumper';
-import { DomainSpecificSearch } from './domainSpecificSearch';
+import { DataScout } from './data-scout';
+import { SolanaDomainDumper } from '../integrations/solana-domain-dumper';
+import { DomainSpecificSearch } from '../scanners/domain-specific-search';
 import * as dotenv from 'dotenv';
 import * as readline from 'readline';
 import * as path from 'path';
 
-// Load .env from project root - works from both project root and twitter-harvester directory
-const envPath = process.cwd().includes('twitter-harvester') 
-  ? path.resolve(__dirname, '../../.env')
-  : path.resolve(process.cwd(), '.env');
+// Load .env from project root - works from both project root and solana-seeker-scout directory
+const envPath = path.resolve(__dirname, '../../.env');
 dotenv.config({ path: envPath });
 
 export class ScoutAgent {
@@ -33,26 +31,26 @@ export class ScoutAgent {
 
   async startContinuousScout(intervalMinutes: number = 30): Promise<void> {
     if (this.isRunning) {
-      console.log('Harvester is already running');
+      console.log('Scout is already running');
       return;
     }
 
     this.isRunning = true;
-    console.log(`Starting continuous harvest with ${intervalMinutes} minute intervals`);
+    console.log(`Starting continuous scout with ${intervalMinutes} minute intervals`);
 
     const runScout = async () => {
       if (!this.isRunning) return;
       
-      console.log(`\n[${new Date().toISOString()}] Starting harvest cycle...`);
+      console.log(`\n[${new Date().toISOString()}] Starting scout cycle...`);
       
       try {
         await this.scout.runScoutCycle();
       } catch (error) {
-        console.error('Error in harvest cycle:', error);
+        console.error('Error in scout cycle:', error);
       }
       
       if (this.isRunning) {
-        console.log(`Next harvest in ${intervalMinutes} minutes...`);
+        console.log(`Next scout in ${intervalMinutes} minutes...`);
       }
     };
 
@@ -67,16 +65,16 @@ export class ScoutAgent {
       this.intervalId = null;
     }
     this.isRunning = false;
-    console.log('Harvester stopped');
+    console.log('Scout stopped');
   }
 
   async runSingleScout(): Promise<void> {
-    console.log('Running single harvest cycle...');
+    console.log('Running single scout cycle...');
     await this.scout.runScoutCycle();
   }
 
   async scoutSpecificDomains(domains: string[]): Promise<void> {
-    console.log(`Harvesting specific domains: ${domains.join(', ')}`);
+    console.log(`Scouting specific domains: ${domains.join(', ')}`);
     await this.scout.scoutSpecificDomains(domains);
   }
 
@@ -123,8 +121,8 @@ export class ScoutAgent {
   async dumpRegisteredDomains(forceRefresh: boolean = false): Promise<void> {
     console.log('🔄 Dumping registered .skr domains from Solana...');
     try {
-      const domains = await this.domainDumper.dumpDomains(forceRefresh);
-      this.domainDumper.getDomainStats(domains);
+      const domains = await this.domainDumper.dumpAllDomains();
+      this.domainDumper.getStats(domains);
     } catch (error) {
       console.error('Error dumping domains:', error);
     }
