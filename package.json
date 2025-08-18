@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/agents/harvester-agent.js",
-    "dev": "ts-node src/agents/harvester-agent.ts",
-    "scout": "ts-node src/agents/harvester-agent.ts",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "scout": "ts-node src/index.ts",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/**/*.ts"
@@ -27,7 +27,8 @@
     "@onsol/tldparser": "^0.5.0",
     "@solana/web3.js": "^1.87.0",
     "axios": "^1.6.0",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "openai": "^4.104.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

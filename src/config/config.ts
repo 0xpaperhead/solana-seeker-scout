@@ -12,6 +12,10 @@ const Config = {
     rpcUrl: process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
   },
 
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY || '',
+  },
+
   output: {
     directory: './output/scout-results',
   },
