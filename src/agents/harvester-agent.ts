@@ -17,11 +17,11 @@ export class ScoutAgent {
   private intervalId: NodeJS.Timeout | null = null;
 
   constructor() {
-    const apiKey = process.env.TWITTER_API_KEY || process.env.RAPIDAPI_KEY || '';
+    const apiKey = process.env.RAPIDAPI_KEY || '';
     const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
     
     if (!apiKey) {
-      throw new Error('Twitter API key not found. Please set TWITTER_API_KEY or RAPIDAPI_KEY in .env file');
+      throw new Error('Twitter API key not found. Please set RAPIDAPI_KEY in .env file');
     }
 
     this.scout = new DataScout(apiKey);

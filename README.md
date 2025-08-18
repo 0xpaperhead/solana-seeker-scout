@@ -16,46 +16,76 @@ Advanced Solana domain discovery system that intelligently searches for .skr dom
 - **📋 Data Export**: Exports data in JSON and CSV formats
 - **🚀 Continuous Scouting**: Can run continuously with intelligent query adaptation
 
-## Setup
+## Getting Started
 
-1. Add your Twitter API key to `.env`:
-```
-TWITTER_API_KEY=your_rapidapi_key_here
-```
-
-2. Install dependencies:
+### 1. Clone and Install
 ```bash
-npm install axios
+git clone <repository-url>
+cd twitter-harvester
+npm install
+```
+
+### 2. Environment Configuration
+Copy the example environment file and configure your API keys:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your RapidAPI key:
+```bash
+# RapidAPI key for Twitter access
+RAPIDAPI_KEY=your_rapidapi_key_here
+
+# Solana Configuration (optional, defaults to mainnet-beta)  
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+```
+
+### 3. Build the Project
+```bash
+npm run build
 ```
 
 ## Usage
 
-### Run Interactive Mode
+### Available Commands
 ```bash
-npx ts-node src/twitter-harvester/harvesterAgent.ts
+# Run the scout in development mode
+npm run dev
+
+# Run the scout (production)
+npm run scout
+
+# Build the project
+npm run build
+
+# Start built application
+npm start
+
+# Type checking
+npm run typecheck
+
+# Lint code
+npm run lint
+
+# Clean build artifacts
+npm run clean
 ```
 
-### Programmatic Usage
-```typescript
-import { HarvesterAgent } from './twitter-harvester';
-
-const agent = new HarvesterAgent();
-
-// Run single harvest
-await agent.runSingleHarvest();
-
-// Start continuous harvesting (every 30 minutes)
-await agent.startContinuousHarvest(30);
-
-// Scout specific domains
-await agent.scoutSpecificDomains(['wallet.skr', 'nft.skr']);
-
-// Get statistics
-agent.getStatistics();
-
-// Export for airdrop
-agent.exportData();
+### Running the Scout
+```bash
+# Start scouting for .skr domains
+npm run scout
 ```
+
+The scout will:
+1. Initialize with adaptive search strategies
+2. Begin collecting Twitter data for .skr domain mentions  
+3. Save results to `output/scout-results/` directory
+4. Continuously adapt search patterns based on performance
+
+## API Setup
+
+Get your RapidAPI key from [RapidAPI Twitter API](https://rapidapi.com/davethebeast/api/twitter241) and add it to your `.env` file. The system includes built-in rate limiting to respect API quotas.
 
 ## Output Files
 
