@@ -1,20 +1,17 @@
 # Solana Seeker Scout
 
-Advanced Solana domain discovery system that intelligently searches for .skr domain mentions across Twitter. Uses adaptive AI-powered search strategies to optimize data collection and maximize domain discovery.
+Advanced .skr domain mention discovery system that finds Twitter mentions of registered Solana domains and analyzes them with AI-powered sentiment analysis and user analytics.
 
 ## Features
 
-- **🤖 Intelligent Query Generation**: Uses local AI algorithms to generate intelligent search queries
-- **🧠 Adaptive Search Strategy**: Learns from results and optimizes search patterns
-- **📊 Performance Analytics**: Tracks query performance and adapts strategies in real-time
-- **🎯 Multi-Strategy Approach**: Diversifies, exploits successful patterns, or targets specific user types
-- **⏰ Time-Aware Optimization**: Adjusts search timing based on historical performance
-- **🌍 Multi-Language Support**: Handles Japanese, English, and other languages
-- **📈 User Profiling**: Categorizes users (developers, traders, gamers, NFT collectors)
-- **💾 Persistent Learning**: Saves and loads adaptive state across sessions
-- **🔄 Rate Limiting**: Built-in rate limiting to respect API limits
-- **📋 Data Export**: Exports data in JSON and CSV formats
-- **🚀 Continuous Scouting**: Can run continuously with intelligent query adaptation
+- **🔗 Blockchain Integration**: Fetches all registered .skr domains directly from Solana blockchain
+- **🐦 Twitter Search**: Searches Twitter for mentions of registered domains
+- **🧠 AI Sentiment Analysis**: Uses OpenAI to analyze tweet sentiment and domain ownership claims
+- **👤 User Analytics**: Collects follower counts, verification status, and user details
+- **📊 Rich Analytics**: Generates comprehensive statistics and insights per domain
+- **💾 Multiple Export Formats**: Saves results in JSON and CSV formats
+- **🔄 Smart Caching**: Avoids redundant blockchain calls with configurable cache timing
+- **⏰ Continuous Monitoring**: Run one-time or continuous scouting with customizable intervals
 
 ## Getting Started
 
@@ -31,18 +28,29 @@ Copy the example environment file and configure your API keys:
 cp .env.example .env
 ```
 
-Edit `.env` with your RapidAPI key:
+Edit `.env` with your API keys:
 ```bash
-# RapidAPI key for Twitter access
+# Twitter API Configuration (Required)
 RAPIDAPI_KEY=your_rapidapi_key_here
 
-# Solana Configuration (optional, defaults to mainnet-beta)  
+# OpenAI Configuration (Required)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Solana Configuration (Optional)
 SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+
+# Cache Configuration (Optional)
+DOMAIN_CACHE_MINUTES=5
 ```
 
-### 3. Build the Project
+### 3. Get API Keys
+- **RapidAPI**: Get your Twitter API key from [RapidAPI Twitter API](https://rapidapi.com/davethebeast/api/twitter241)
+- **OpenAI**: Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+
+### 4. Build and Run
 ```bash
 npm run build
+npm run scout
 ```
 
 ## Usage
@@ -71,82 +79,94 @@ npm run lint
 npm run clean
 ```
 
-### Running the Scout
-```bash
-# Start scouting for .skr domains
-npm run scout
-```
+### Interactive Menu
+When you run `npm run scout`, you'll get an interactive menu:
 
-The scout will:
-1. Initialize with adaptive search strategies
-2. Begin collecting Twitter data for .skr domain mentions  
-3. Save results to `output/scout-results/` directory
-4. Continuously adapt search patterns based on performance
+1. **Scout registered domains** - Complete flow for all registered .skr domains
+2. **Scout specific domains** - Target specific domains you choose
+3. **Start continuous scouting** - Run automated scouting every X minutes
+4. **Dump registered domains** - Fetch latest domains from Solana blockchain
+5. **Show statistics** - Display results from previous scout runs
+6. **Stop scouting** - Stop continuous mode
+7. **Exit** - Quit the application
 
-## API Setup
+## Scout Flow
 
-Get your RapidAPI key from [RapidAPI Twitter API](https://rapidapi.com/davethebeast/api/twitter241) and add it to your `.env` file. The system includes built-in rate limiting to respect API quotas.
+The system follows a comprehensive 5-step process:
+
+1. **🔗 Get Domains** → Fetches registered .skr domains from Solana blockchain
+2. **🔍 Search Mentions** → Searches Twitter for `"domain.skr"` mentions
+3. **🧠 Analyze Sentiment** → OpenAI analyzes each tweet for sentiment and ownership
+4. **👤 Get User Details** → Fetches follower counts and verification status
+5. **📊 Generate Analytics** → Compiles comprehensive domain and user statistics
 
 ## Output Files
 
-- `output/scout-results/scouted_data.json` - Full scout data
-- `output/scout-results/scouted_data.csv` - CSV export
-- `output/scout-results/airdrop_list.json` - Formatted for token distribution
-- `output/scout-results/progress.json` - Scout progress tracking
-- `output/scout-results/adaptive_state.json` - AI learning state
+Results are saved in `output/scout-results/` directory:
+
+- **`scout-results-{timestamp}.json`** - Complete scout results with timestamps
+- **`latest-scout-results.json`** - Most recent results (always current)
+- **`scout-mentions-{timestamp}.csv`** - Spreadsheet-friendly format
+- **`solana_domains.json`** - All registered domains from blockchain
 
 ## Data Structure
 
-Each scouted record contains:
-- `domain`: The .skr domain mentioned
-- `username`: Twitter username who mentioned it
-- `userId`: Twitter user ID
-- `followers`: Number of followers
-- `tweetId`: ID of the tweet containing mention
-- `tweetText`: Full text of the tweet
-- `timestamp`: When the tweet was created
-- `scoutedAt`: When the data was scouted
+### Scout Results
+```json
+{
+  "totalDomains": 150,
+  "domainsWithMentions": 23,
+  "totalMentions": 45,
+  "totalReach": 125000,
+  "scoutedAt": "2025-01-15T10:30:00Z",
+  "domains": [...],
+  "mentions": [...]
+}
+```
 
-## AI Search Strategies
+### Individual Mentions
+Each mention includes:
+- **Domain**: The .skr domain mentioned
+- **User Details**: Username, followers, verification status
+- **Tweet Data**: Text, ID, timestamp
+- **AI Analysis**: Sentiment (positive/neutral/negative), ownership detection
+- **Reasoning**: OpenAI's explanation for sentiment/ownership decision
 
-The scout uses different strategies based on performance:
+### Domain Analytics
+Per-domain statistics include:
+- **Reach Metrics**: Total followers, average influence
+- **Sentiment Breakdown**: Distribution of positive/neutral/negative mentions
+- **Ownership Insights**: Confirmed owners vs casual mentions
+- **Top Influencers**: Highest-follower users mentioning the domain
 
-### 🎯 **Diversify Strategy**
-- Used when few results found recently
-- Explores new search angles and untapped niches
-- Tries creative query combinations
+## Smart Caching
 
-### 🚀 **Exploit Strategy** 
-- Used when getting good results
-- Builds on successful query patterns
-- Optimizes high-performing approaches
+The system uses intelligent caching to optimize performance:
+- **Domain Cache**: Reuses blockchain data for 5 minutes (configurable)
+- **Rate Limiting**: Built-in delays to respect API quotas
+- **Efficient Requests**: Only fetches user details when usernames are available
 
-### 📈 **Trend-Surf Strategy**
-- Used during peak hours (9-12, 18-22)
-- Combines current Twitter trends with .skr searches
-- Leverages viral content and hashtags
+## AI-Powered Analysis
 
-### ⏰ **Time-Optimize Strategy**
-- Used during off-peak hours
-- Targets queries effective at specific times
-- Adapts to user activity patterns
+Each tweet is analyzed by OpenAI to determine:
+- **Sentiment**: Positive, neutral, or negative (with 1-10 score)
+- **Ownership**: Does the user claim to own the domain? (yes/no/unknown)
+- **Reasoning**: Detailed explanation of the AI's decision
 
-### 👥 **User-Target Strategy**
-- Used when enough data collected
-- Targets underrepresented user segments
-- Balances developer/trader/gamer/NFT collector discovery
+This enables identification of actual domain owners vs casual mentions.
 
-## Priority Levels
+## Use Cases
 
-Users are categorized by follower count:
-- **High Priority**: > 10,000 followers  
-- **Medium Priority**: 1,000 - 10,000 followers
-- **Low Priority**: < 1,000 followers
+- **Domain Analytics**: Understand which .skr domains are gaining traction
+- **Owner Discovery**: Find users who claim ownership of specific domains
+- **Market Research**: Analyze sentiment around domain mentions
+- **Influence Tracking**: Identify high-follower users discussing domains
+- **Trend Analysis**: Monitor domain mention patterns over time
 
-## AI Learning
+## Requirements
 
-The system continuously learns and adapts:
-- Tracks query performance over time
-- Identifies successful patterns and timing
-- Adapts to trends and user behavior changes
-- Persists learning across sessions
+- **Node.js** 18+
+- **TypeScript** 5+
+- **RapidAPI Account** (for Twitter access)
+- **OpenAI Account** (for sentiment analysis)
+- **Internet Connection** (for Solana RPC and APIs)
