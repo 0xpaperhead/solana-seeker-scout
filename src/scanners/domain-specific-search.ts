@@ -141,7 +141,7 @@ export class DomainSpecificSearch {
     return queries.slice(0, maxQueries);
   }
 
-  async searchAllRegisteredDomains(forceRefresh: boolean = false, batchSize: number = 50): Promise<DomainSearchResult[]> {
+  async searchAllRegisteredDomains(_forceRefresh: boolean = false, batchSize: number = 50): Promise<DomainSearchResult[]> {
     console.log('📋 Loading registered .skr domains...');
     
     // Get all registered domains

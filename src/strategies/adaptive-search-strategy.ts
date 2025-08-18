@@ -1,5 +1,9 @@
-import { LocalIntelligentGenerator, SearchQueriesResponse } from './local-intelligent-generator';
 import { DomainMention } from '../scanners/domain-scanner';
+
+interface SearchQueriesResponse {
+  search_queries: string[];
+  reasoning: string;
+}
 
 interface SearchContext {
   previousQueries: string[];
@@ -20,12 +24,10 @@ interface SearchMetrics {
 }
 
 export class AdaptiveSearchStrategy {
-  private localGenerator: LocalIntelligentGenerator;
   private searchContext: SearchContext;
   private metrics: SearchMetrics;
 
   constructor() {
-    this.localGenerator = new LocalIntelligentGenerator();
     this.searchContext = {
       previousQueries: [],
       foundDomains: [],
@@ -128,48 +130,141 @@ export class AdaptiveSearchStrategy {
   }
 
   private async getDiversificationQueries(): Promise<SearchQueriesResponse> {
-    return await this.localGenerator.generateQueries({
-      ...this.searchContext,
-      trendsContext: 'Diversification strategy: exploring new search angles and untapped niches'
-    });
+    const diversifyQueries = [
+      'bought my .skr',
+      'set up .skr',
+      'minting with .skr',
+      '.skr address book',
+      'DeFi .skr wallet',
+      'trading via .skr',
+      '.skr mobile payments',
+      'secured .skr domain',
+      'crypto .skr username',
+      'blockchain .skr identity'
+    ];
+    
+    const filteredQueries = this.filterUsedQueries(diversifyQueries);
+    
+    return {
+      search_queries: filteredQueries.slice(0, 6),
+      reasoning: 'Diversification strategy: exploring new search angles and untapped niches'
+    };
   }
 
   private async getExploitationQueries(): Promise<SearchQueriesResponse> {
     const successfulPatterns = this.analyzeSuccessfulPatterns();
     
-    return await this.localGenerator.generateQueries({
-      ...this.searchContext,
-      trendsContext: `Exploitation strategy: building on successful patterns: ${successfulPatterns.join(', ')}`
-    });
+    // Build variations of successful queries
+    const exploitQueries: string[] = [];
+    for (const query of this.searchContext.successfulQueries.slice(0, 3)) {
+      if (query.includes('.skr')) {
+        exploitQueries.push(`${query} wallet`);
+        exploitQueries.push(`${query} domain`);
+        exploitQueries.push(`new ${query}`);
+      }
+    }
+    
+    // Fallback to balanced queries if no successful patterns
+    if (exploitQueries.length === 0) {
+      exploitQueries.push('solana mobile .skr', '.skr wallet setup', 'registered .skr domain');
+    }
+    
+    const filteredQueries = this.filterUsedQueries(exploitQueries);
+    
+    return {
+      search_queries: filteredQueries.slice(0, 6),
+      reasoning: `Exploitation strategy: building on successful patterns: ${successfulPatterns.join(', ')}`
+    };
   }
 
   private async getTrendSurfingQueries(): Promise<SearchQueriesResponse> {
     // In a real implementation, you'd fetch current Twitter trends
     const mockTrends = ['Solana', 'crypto', 'NFT', 'mobile', 'blockchain', 'DeFi'];
+    const trendQueries = mockTrends.slice(0, 4).map(trend => `${trend} .skr`);
     
-    return await this.localGenerator.generateTrendAwareQueries(mockTrends);
+    const filteredQueries = this.filterUsedQueries(trendQueries);
+    
+    return {
+      search_queries: filteredQueries,
+      reasoning: 'Trend-surfing strategy: combining trending topics with .skr domains'
+    };
   }
 
   private async getTimeOptimizedQueries(): Promise<SearchQueriesResponse> {
     const bestPerformingHour = this.getBestPerformingTimeWindow();
     
-    return await this.localGenerator.generateQueries({
-      ...this.searchContext,
-      trendsContext: `Time optimization: targeting queries effective during hour ${bestPerformingHour}`
-    });
+    // Time-optimized queries based on current hour
+    const currentHour = new Date().getHours();
+    let timeQueries: string[] = [];
+    
+    if (currentHour >= 9 && currentHour <= 12) {
+      timeQueries = ['morning .skr setup', 'daily .skr check', 'work with .skr'];
+    } else if (currentHour >= 18 && currentHour <= 22) {
+      timeQueries = ['evening .skr trade', 'tonight .skr mint', 'crypto .skr news'];
+    } else {
+      timeQueries = ['late night .skr', 'quiet .skr time', 'overnight .skr'];
+    }
+    
+    const filteredQueries = this.filterUsedQueries(timeQueries);
+    
+    return {
+      search_queries: filteredQueries,
+      reasoning: `Time optimization: targeting queries effective during hour ${bestPerformingHour}`
+    };
   }
 
   private async getUserTargetedQueries(): Promise<SearchQueriesResponse> {
     const userProfiles = this.analyzeUserProfiles();
     
-    return await this.localGenerator.generateUserTypeQueries(userProfiles);
+    // Generate queries for underrepresented user types
+    const queries: string[] = [];
+    
+    if (userProfiles.developers < userProfiles.traders) {
+      queries.push('building on .skr', 'dev .skr domains', 'coding .skr');
+    }
+    if (userProfiles.traders < userProfiles.developers) {
+      queries.push('trading .skr', '.skr price', 'buying .skr');
+    }
+    if (userProfiles.gamers < userProfiles.nftCollectors) {
+      queries.push('gaming .skr', 'game .skr domain', 'esports .skr');
+    }
+    if (userProfiles.nftCollectors < userProfiles.gamers) {
+      queries.push('NFT .skr', 'collecting .skr', 'mint .skr');
+    }
+    
+    if (queries.length === 0) {
+      queries.push('.skr wallet', '.skr domain', '.skr address');
+    }
+    
+    const filteredQueries = this.filterUsedQueries(queries);
+    
+    return {
+      search_queries: filteredQueries.slice(0, 6),
+      reasoning: `User targeting: focusing on underrepresented segments`
+    };
   }
 
   private async getBalancedQueries(): Promise<SearchQueriesResponse> {
-    return await this.localGenerator.generateQueries({
-      ...this.searchContext,
-      trendsContext: 'Balanced strategy: mixing proven and experimental approaches'
-    });
+    const balancedQueries = [
+      'solana mobile .skr',
+      '.skr wallet setup',
+      'registered .skr domain',
+      'claiming .skr',
+      'my new .skr',
+      '.skr blockchain'
+    ];
+    
+    const filteredQueries = this.filterUsedQueries(balancedQueries);
+    
+    return {
+      search_queries: filteredQueries,
+      reasoning: 'Balanced strategy: proven reliable query patterns'
+    };
+  }
+
+  private filterUsedQueries(queries: string[]): string[] {
+    const usedQueries = new Set(this.searchContext.previousQueries);
+    return queries.filter(query => !usedQueries.has(query));
   }
 
   private analyzeSuccessfulPatterns(): string[] {

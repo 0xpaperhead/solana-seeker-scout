@@ -6,7 +6,6 @@ import {
     getHashedName,
     getNameAccountKeyWithBump,
     NameRecordHeader,
-    Record,
 } from "@onsol/tldparser";
 import {
     Connection,

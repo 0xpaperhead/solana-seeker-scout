@@ -118,7 +118,7 @@ export class ScoutAgent {
   }
 
 
-  async dumpRegisteredDomains(forceRefresh: boolean = false): Promise<void> {
+  async dumpRegisteredDomains(_forceRefresh: boolean = false): Promise<void> {
     console.log('🔄 Dumping registered .skr domains from Solana...');
     try {
       const domains = await this.domainDumper.dumpAllDomains();
