@@ -1,32 +1,19 @@
-import { DataScout } from './data-scout';
 import { SolanaDomainDumper } from '../integrations/solana-domain-dumper';
 import { DomainSpecificSearch } from '../scanners/domain-specific-search';
-import * as dotenv from 'dotenv';
+import Config from '../config/config';
 import * as readline from 'readline';
+import * as fs from 'fs';
 import * as path from 'path';
 
-// Load .env from project root - works from both project root and solana-seeker-scout directory
-const envPath = path.resolve(__dirname, '../../.env');
-dotenv.config({ path: envPath });
-
 export class ScoutAgent {
-  private scout: DataScout;
   private domainDumper: SolanaDomainDumper;
   private domainSearch: DomainSpecificSearch;
   private isRunning: boolean = false;
   private intervalId: NodeJS.Timeout | null = null;
 
   constructor() {
-    const apiKey = process.env.RAPIDAPI_KEY || '';
-    const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
-    
-    if (!apiKey) {
-      throw new Error('Twitter API key not found. Please set RAPIDAPI_KEY in .env file');
-    }
-
-    this.scout = new DataScout(apiKey);
-    this.domainDumper = new SolanaDomainDumper(rpcUrl);
-    this.domainSearch = new DomainSpecificSearch(apiKey, rpcUrl);
+    this.domainDumper = new SolanaDomainDumper(Config.solana.rpcUrl);
+    this.domainSearch = new DomainSpecificSearch(Config.rapidapi.key, Config.solana.rpcUrl);
   }
 
   async startContinuousScout(intervalMinutes: number = 30): Promise<void> {
@@ -44,7 +31,7 @@ export class ScoutAgent {
       console.log(`\n[${new Date().toISOString()}] Starting scout cycle...`);
       
       try {
-        await this.scout.runScoutCycle();
+        await this.scoutRegisteredDomains();
       } catch (error) {
         console.error('Error in scout cycle:', error);
       }
@@ -68,57 +55,62 @@ export class ScoutAgent {
     console.log('Scout stopped');
   }
 
-  async runSingleScout(): Promise<void> {
-    console.log('Running single scout cycle...');
-    await this.scout.runScoutCycle();
+  private isDomainDumpRecent(): boolean {
+    const domainFile = path.join(Config.output.directory, 'solana_domains.json');
+    
+    if (!fs.existsSync(domainFile)) {
+      return false;
+    }
+    
+    const stats = fs.statSync(domainFile);
+    const cacheThreshold = Date.now() - (Config.scout.domainCacheMinutes * 60 * 1000);
+    return stats.mtime.getTime() > cacheThreshold;
+  }
+
+  async scoutRegisteredDomains(): Promise<void> {
+    if (this.isDomainDumpRecent()) {
+      console.log(`📋 Using recent domain dump (less than ${Config.scout.domainCacheMinutes} minutes old)`);
+    } else {
+      console.log('🔄 Refreshing registered domains from blockchain...');
+      await this.dumpRegisteredDomains();
+    }
+    
+    console.log('🎯 Scouting Twitter for registered .skr domain mentions...');
+    try {
+      const results = await this.domainSearch.searchAllRegisteredDomains(20);
+      console.log(`\n✅ Found mentions for ${results.filter(r => r.totalMentions > 0).length} domains`);
+      this.domainSearch.printSummary();
+    } catch (error) {
+      console.error('Error scouting registered domains:', error);
+    }
   }
 
   async scoutSpecificDomains(domains: string[]): Promise<void> {
-    console.log(`Scouting specific domains: ${domains.join(', ')}`);
-    await this.scout.scoutSpecificDomains(domains);
-  }
-
-  async scoutFromUsers(usernames: string[]): Promise<void> {
-    console.log(`Scouting from users: ${usernames.join(', ')}`);
-    await this.scout.scoutFromUserList(usernames);
+    console.log(`🎯 Scouting specific domains: ${domains.join(', ')}`);
+    try {
+      const results = await this.domainSearch.searchSpecificDomains(domains, 4);
+      const foundMentions = results.filter(r => r.totalMentions > 0);
+      
+      console.log(`\n✅ Found mentions for ${foundMentions.length}/${domains.length} domains`);
+      
+      if (foundMentions.length > 0) {
+        console.log('\n🎯 Results:');
+        foundMentions.forEach(result => {
+          console.log(`  ${result.domain}: ${result.totalMentions} mentions from ${result.uniqueUsers} users`);
+        });
+      }
+    } catch (error) {
+      console.error('Error scouting specific domains:', error);
+    }
   }
 
   getStatistics(): void {
-    const data = this.scout.getScoutedData();
-    const topInfluencers = this.scout.getTopInfluencers(10);
-    const domainStats = this.scout.getDomainStats();
-
-    console.log('\n=== Current Statistics ===');
-    console.log(`Total records: ${data.length}`);
-    console.log(`Unique users: ${new Set(data.map((d: any) => d.username)).size}`);
-    console.log(`Unique domains: ${new Set(data.map((d: any) => d.domain)).size}`);
-
-    if (topInfluencers.length > 0) {
-      console.log('\n=== Top 10 Influencers ===');
-      topInfluencers.forEach((item: any, index: number) => {
-        console.log(`${index + 1}. @${item.username}`);
-        console.log(`   Followers: ${item.followers.toLocaleString()}`);
-        console.log(`   Domain: ${item.domain}`);
-        console.log(`   Tweet: ${item.tweetText.substring(0, 100)}...`);
-      });
-    }
-
-    if (domainStats.size > 0) {
-      console.log('\n=== Domain Statistics ===');
-      const sortedDomains = Array.from(domainStats.entries())
-        .sort((a: any, b: any) => b[1].totalFollowers - a[1].totalFollowers);
-      
-      sortedDomains.forEach(([domain, stats]: [any, any]) => {
-        console.log(`${domain}:`);
-        console.log(`   Mentions: ${stats.count}`);
-        console.log(`   Total Reach: ${stats.totalFollowers.toLocaleString()} followers`);
-        console.log(`   Avg Followers: ${Math.round(stats.totalFollowers / stats.count).toLocaleString()}`);
-      });
-    }
+    console.log('\n=== Scout Statistics ===');
+    this.domainSearch.printSummary();
   }
 
 
-  async dumpRegisteredDomains(_forceRefresh: boolean = false): Promise<void> {
+  async dumpRegisteredDomains(): Promise<void> {
     console.log('🔄 Dumping registered .skr domains from Solana...');
     try {
       const domains = await this.domainDumper.dumpAllDomains();
@@ -128,29 +120,6 @@ export class ScoutAgent {
     }
   }
 
-  async searchRegisteredDomains(batchSize: number = 20): Promise<void> {
-    console.log('🎯 Searching Twitter for registered .skr domain mentions...');
-    try {
-      const results = await this.domainSearch.searchAllRegisteredDomains(false, batchSize);
-      console.log(`\n✅ Search completed! Found mentions for ${results.filter(r => r.totalMentions > 0).length} domains`);
-    } catch (error) {
-      console.error('Error searching registered domains:', error);
-    }
-  }
-
-  async searchSampleDomains(count: number = 10): Promise<void> {
-    console.log(`🎲 Searching ${count} random .skr domains...`);
-    try {
-      const results = await this.domainSearch.searchPopularDomains(count);
-      console.log(`\n✅ Sample search completed! Found mentions for ${results.filter(r => r.totalMentions > 0).length} domains`);
-    } catch (error) {
-      console.error('Error searching sample domains:', error);
-    }
-  }
-
-  showDomainSearchStats(): void {
-    this.domainSearch.printSummary();
-  }
 }
 
 async function main() {
@@ -161,30 +130,38 @@ async function main() {
   });
 
   const showMenu = () => {
-    console.log('\n=== Twitter .skr Domain Scout Agent ===');
-    console.log('1. Run single scout cycle');
-    console.log('2. Start continuous scouting');
-    console.log('3. Scout specific domains');
-    console.log('4. Scout from specific users');
+    console.log('\n=== Solana .skr Domain Scout ===');
+    console.log('1. Scout registered domains');
+    console.log('2. Scout specific domains');
+    console.log('3. Start continuous scouting');
+    console.log('4. Dump registered domains');
     console.log('5. Show statistics');
-    console.log('6. Stop continuous scouting');
-    console.log('7. Dump registered .skr domains');
-    console.log('8. Search registered domains');
-    console.log('9. Search sample domains');
-    console.log('10. Domain search statistics');
-    console.log('11. Exit');
-    console.log('=====================================');
+    console.log('6. Stop scouting');
+    console.log('7. Exit');
+    console.log('===============================');
   };
 
   const promptUser = () => {
-    rl.question('\nSelect an option (1-11): ', async (answer) => {
+    rl.question('\nSelect an option (1-7): ', async (answer) => {
       switch (answer.trim()) {
         case '1':
-          await agent.runSingleScout();
+          await agent.scoutRegisteredDomains();
           promptUser();
           break;
 
         case '2':
+          rl.question('Enter domains separated by commas (e.g., wallet.skr, nft.skr): ', async (domains) => {
+            const domainList = domains.split(',').map(d => d.trim()).filter(d => d);
+            if (domainList.length > 0) {
+              await agent.scoutSpecificDomains(domainList);
+            } else {
+              console.log('No valid domains provided');
+            }
+            promptUser();
+          });
+          break;
+
+        case '3':
           rl.question('Enter interval in minutes (default 30): ', async (interval) => {
             const minutes = parseInt(interval) || 30;
             await agent.startContinuousScout(minutes);
@@ -192,24 +169,9 @@ async function main() {
           });
           break;
 
-        case '3':
-          rl.question('Enter domains separated by commas (e.g., wallet.skr, nft.skr): ', async (domains) => {
-            const domainList = domains.split(',').map(d => d.trim()).filter(d => d);
-            if (domainList.length > 0) {
-              await agent.scoutSpecificDomains(domainList);
-            }
-            promptUser();
-          });
-          break;
-
         case '4':
-          rl.question('Enter usernames separated by commas (without @): ', async (users) => {
-            const userList = users.split(',').map(u => u.trim()).filter(u => u);
-            if (userList.length > 0) {
-              await agent.scoutFromUsers(userList);
-            }
-            promptUser();
-          });
+          await agent.dumpRegisteredDomains();
+          promptUser();
           break;
 
         case '5':
@@ -217,42 +179,12 @@ async function main() {
           promptUser();
           break;
 
-
         case '6':
           agent.stopScout();
           promptUser();
           break;
 
         case '7':
-          rl.question('Force refresh domains? (y/N): ', async (refresh) => {
-            const forceRefresh = refresh.toLowerCase() === 'y' || refresh.toLowerCase() === 'yes';
-            await agent.dumpRegisteredDomains(forceRefresh);
-            promptUser();
-          });
-          break;
-
-        case '8':
-          rl.question('Enter batch size (default 20): ', async (batchSize) => {
-            const size = parseInt(batchSize) || 20;
-            await agent.searchRegisteredDomains(size);
-            promptUser();
-          });
-          break;
-
-        case '9':
-          rl.question('Enter number of domains to sample (default 10): ', async (count) => {
-            const sampleCount = parseInt(count) || 10;
-            await agent.searchSampleDomains(sampleCount);
-            promptUser();
-          });
-          break;
-
-        case '10':
-          agent.showDomainSearchStats();
-          promptUser();
-          break;
-
-        case '11':
           agent.stopScout();
           console.log('Goodbye!');
           rl.close();
