@@ -22,7 +22,7 @@ This is Solana Seeker Scout - an advanced TypeScript-based system that intellige
 1. ScoutAgent orchestrates scouting cycles
 2. DataScout uses AdaptiveSearchStrategy to generate optimized queries
 3. TwitterClient fetches data from Twitter API
-4. Results are processed and stored in output/scout-results/ directory
+4. Results are processed and stored in output/ directory
 5. System adapts search patterns based on performance metrics
 
 ## Development Commands
@@ -55,7 +55,7 @@ Required environment variables in `.env`:
 
 ## Data Storage
 
-All scouted data is stored in `output/scout-results/` directory:
+All scouted data is stored in `output/` directory:
 - `scouted_data.json`: Full scout data
 - `scouted_data.csv`: CSV export format
 - `airdrop_list.json`: Formatted for token distribution

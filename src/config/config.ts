@@ -17,7 +17,7 @@ const Config = {
   },
 
   output: {
-    directory: './output/scout-results',
+    directory: './output',
   },
 
   scout: {

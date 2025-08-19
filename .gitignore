@@ -15,8 +15,8 @@ build/
 *.tsbuildinfo
 
 # Output data
-output/scout-results/*
-!output/scout-results/.gitkeep
+output/*
+!output/.gitkeep
 
 # IDE
 .vscode/

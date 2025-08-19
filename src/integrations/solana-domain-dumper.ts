@@ -15,6 +15,7 @@ import {
 import { setTimeout } from "timers/promises";
 import * as fs from 'fs';
 import * as path from 'path';
+import Config from "../config/config";
 
 interface SkrDomain {
   domain: string;
@@ -102,9 +103,9 @@ export class SolanaDomainDumper {
   private connection: Connection;
   private outputDir: string;
 
-  constructor(rpcUrl: string, outputDir: string = './output/scout-results') {
+  constructor(rpcUrl: string) {
     this.connection = new Connection(rpcUrl, 'confirmed');
-    this.outputDir = outputDir;
+    this.outputDir = Config.output.directory;
     
     this.ensureOutputDirectory();
   }
